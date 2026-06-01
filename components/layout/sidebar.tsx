@@ -10,6 +10,8 @@ import {
   Calendar,
   Bot,
   TrendingUp,
+  Terminal,
+  Briefcase,
   ChevronLeft,
   ChevronRight,
   Moon,
@@ -23,6 +25,8 @@ import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { label: "Dashboard", href: "/", icon: LayoutDashboard },
+  { label: "Agent OS", href: "/agent-os", icon: Terminal },
+  { label: "Jobs", href: "/agent-os/jobs", icon: Briefcase },
   { label: "Tasks", href: "/tasks", icon: CheckSquare },
   { label: "Ideas", href: "/ideas", icon: Lightbulb },
   { label: "Fitness", href: "/fitness", icon: Dumbbell },

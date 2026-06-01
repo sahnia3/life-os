@@ -410,3 +410,143 @@ html {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   AGENT OS — Mission-Control theme (scoped to .agentos)
+   Linear-grade neutral ramp + luminance hierarchy. Does NOT touch the rest
+   of life-os. Dark, dense, premium command-center surface.
+   ════════════════════════════════════════════════════════════════════════════ */
+.agentos {
+  /* Linear neutral ramp */
+  --ag-base: #08090a;
+  --ag-raised: #0f1011;
+  --ag-nested: #161718;
+  --ag-overlay: #1c1d1f;
+  --ag-border: #23252a;
+  --ag-border-soft: #1a1c1f;
+  --ag-divider: #323334;
+  --ag-text: #f7f8f8;
+  --ag-text-2: #d0d6e0;
+  --ag-text-mut: #8a8f98;
+  --ag-text-dim: #62666d;
+  /* Status (Catppuccin-bright for dark legibility) */
+  --ag-green: #a6e3a1;
+  --ag-yellow: #f9e2af;
+  --ag-red: #f38ba8;
+  --ag-blue: #89b4fa;
+  --ag-teal: #94e2d5;
+  --ag-violet: #cba6f7;
+  --ag-accent: #7c83ff;
+
+  background: var(--ag-base);
+  color: var(--ag-text);
+  font-feature-settings: "cv01", "ss03", "tnum";
+  letter-spacing: -0.012em;
+  min-height: 100vh;
+}
+.agentos ::selection { background: rgba(124,131,255,0.28); }
+
+/* Surface utilities */
+.agentos .ag-surface {
+  background: var(--ag-raised);
+  box-shadow: inset 0 0 0 1px var(--ag-border);
+  border-radius: 8px;
+}
+.agentos .ag-surface-2 {
+  background: var(--ag-nested);
+  box-shadow: inset 0 0 0 1px var(--ag-border-soft);
+  border-radius: 6px;
+}
+.agentos .ag-hairline { box-shadow: inset 0 0 0 1px var(--ag-border); }
+.agentos .ag-num {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+.agentos .ag-mut { color: var(--ag-text-mut); }
+.agentos .ag-dim { color: var(--ag-text-dim); }
+.agentos .ag-h {
+  letter-spacing: -0.02em;
+  font-weight: 590;
+}
+
+/* Status dot + live pulse */
+.agentos .ag-dot {
+  width: 8px; height: 8px; border-radius: 9999px;
+  display: inline-block; flex: none;
+}
+.agentos .ag-dot--live { position: relative; }
+.agentos .ag-dot--live::after {
+  content: ""; position: absolute; inset: -3px; border-radius: 9999px;
+  background: inherit; opacity: 0.4;
+  animation: ag-pulse-ring 1.8s cubic-bezier(0.4,0,0.6,1) infinite;
+}
+@keyframes ag-pulse-ring {
+  0% { transform: scale(0.7); opacity: 0.5; }
+  70% { transform: scale(1.9); opacity: 0; }
+  100% { opacity: 0; }
+}
+
+/* Tile data-refresh flash */
+@keyframes ag-flash {
+  0% { box-shadow: inset 0 0 0 1px var(--ag-accent); }
+  100% { box-shadow: inset 0 0 0 1px var(--ag-border); }
+}
+.agentos .ag-flash { animation: ag-flash 0.6s ease-out; }
+
+/* Attention pulse (urgent) */
+@keyframes ag-attn {
+  0%,100% { box-shadow: inset 0 0 0 1px rgba(243,139,168,0.5); }
+  50% { box-shadow: inset 0 0 0 1px rgba(243,139,168,0.95); }
+}
+.agentos .ag-attn { animation: ag-attn 1.6s ease-in-out infinite; }
+
+/* Count-up number roll */
+@keyframes ag-rollin {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.agentos .ag-roll { animation: ag-rollin 0.35s ease-out; }
+
+/* Activity stream row fade-in */
+@keyframes ag-fadein {
+  from { opacity: 0; transform: translateX(-4px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.agentos .ag-rowin { animation: ag-fadein 0.25s ease-out; }
+
+/* Scrollbars */
+.agentos *::-webkit-scrollbar { width: 8px; height: 8px; }
+.agentos *::-webkit-scrollbar-thumb {
+  background: var(--ag-border); border-radius: 8px;
+}
+.agentos *::-webkit-scrollbar-track { background: transparent; }
+
+/* cmdk palette */
+.agentos [cmdk-root] {
+  background: var(--ag-raised);
+  box-shadow: inset 0 0 0 1px var(--ag-border), 0 24px 64px rgba(0,0,0,0.6);
+  border-radius: 12px;
+}
+.agentos [cmdk-input] {
+  background: transparent; color: var(--ag-text); outline: none;
+  font-size: 14px; width: 100%;
+}
+.agentos [cmdk-item] {
+  color: var(--ag-text-2); border-radius: 6px;
+  cursor: pointer; font-size: 13px;
+}
+.agentos [cmdk-item][data-selected="true"] {
+  background: var(--ag-nested); color: var(--ag-text);
+}
+.agentos [cmdk-group-heading] {
+  color: var(--ag-text-dim); font-size: 10px;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  padding: 8px 8px 4px;
+}
+.agentos kbd {
+  font-family: var(--font-mono, monospace);
+  font-size: 10px; padding: 1px 5px; border-radius: 4px;
+  background: var(--ag-nested);
+  box-shadow: inset 0 0 0 1px var(--ag-border);
+  color: var(--ag-text-mut);
+}

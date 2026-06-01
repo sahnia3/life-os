@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  serverExternalPackages: ["chokidar", "better-sqlite3", "fsevents", "node-pty", "ws"],
 };
 
 export default nextConfig;

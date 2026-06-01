@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
 import Database from "better-sqlite3";
 import path from "path";
-import fs from "fs";
 
 const AGENT_DIR =
   process.env.POLYMARKET_AGENT_DIR ||
   "/Users/adityasahni/Desktop/Claudecode/polymarket-agent";
 
 const DB_PATH = path.join(AGENT_DIR, "db", "trading.db");
-const PORTFOLIO_PATH = path.join(AGENT_DIR, "data", "portfolio.json");
 
 interface TradeRow {
   id: number;
@@ -25,6 +23,8 @@ interface TradeRow {
   status: string;
   dry_run: number;
   response_json: string | null;
+  resolved?: number;
+  pnl?: number | null;
 }
 
 interface SnapshotRow {
@@ -47,6 +47,8 @@ function parseResponseJson(raw: string | null) {
 }
 
 export async function GET() {
+  const STARTING_CAPITAL = 131.0;
+
   try {
     const db = new Database(DB_PATH, { readonly: true });
 
@@ -59,6 +61,37 @@ export async function GET() {
         "SELECT * FROM portfolio_snapshots ORDER BY timestamp DESC LIMIT 30"
       )
       .all() as SnapshotRow[];
+
+    // Compute portfolio from DB — single source of truth
+    const resolvedPnl = db
+      .prepare("SELECT COALESCE(SUM(pnl), 0) as total FROM trades WHERE dry_run = 0 AND resolved = 1")
+      .get() as { total: number };
+
+    const openPositions = db
+      .prepare(
+        `SELECT id, timestamp, market_id, market_question, token_id, side, amount, price,
+                estimated_prob, edge, response_json
+         FROM trades WHERE dry_run = 0 AND resolved = 0 AND side != 'SELL'
+           AND token_id NOT IN (SELECT token_id FROM trades WHERE side = 'SELL' AND dry_run = 0)
+         ORDER BY timestamp DESC`
+      )
+      .all() as TradeRow[];
+
+    // Get real USDC balance from latest pipeline cycle
+    const latestBalance = db
+      .prepare("SELECT balance_after FROM pipeline_cycles WHERE balance_after IS NOT NULL ORDER BY id DESC LIMIT 1")
+      .get() as { balance_after: number } | undefined;
+
+    // Resolved trades for P&L trend (chronological)
+    const resolvedTrades = db.prepare(
+      `SELECT timestamp, market_question, side, amount, pnl, edge, market_id
+       FROM trades WHERE dry_run = 0 AND resolved = 1 ORDER BY timestamp ASC`
+    ).all() as { timestamp: string; market_question: string | null; side: string; amount: number; pnl: number | null; edge: number | null; market_id: string | null }[];
+
+    const totalInvested = openPositions.reduce((sum, t) => sum + t.amount, 0);
+    const realizedPnl = resolvedPnl.total;
+    const cashAvailable = latestBalance?.balance_after ?? (STARTING_CAPITAL + realizedPnl - totalInvested);
+    const estimatedTotalValue = cashAvailable + totalInvested;
 
     db.close();
 
@@ -104,56 +137,63 @@ export async function GET() {
       dailyPnl: s.daily_pnl,
     }));
 
-    // Read live portfolio data
-    let portfolio = {
-      starting_capital: 131.0,
-      effective_capital: 131.0,
-      realized_pnl: 0,
-      cash_available: 131.0,
-      total_invested: 0,
-      estimated_total_value: 131.0,
-      position_count: 0,
-      max_positions: 5,
-      today_pnl: 0,
-      daily_loss_limit: 13.1,
-      max_position_size: 19.65,
-    };
-    try {
-      if (fs.existsSync(PORTFOLIO_PATH)) {
-        const raw = fs.readFileSync(PORTFOLIO_PATH, "utf-8");
-        portfolio = { ...portfolio, ...JSON.parse(raw) };
-      }
-    } catch {
-      // use defaults
-    }
+    const formattedPositions = openPositions.map((t) => {
+      const resp = parseResponseJson(t.response_json);
+      const sharesReceived = resp?.takingAmount ? parseFloat(resp.takingAmount) : null;
+      return {
+        id: t.id,
+        timestamp: t.timestamp,
+        marketId: t.market_id,
+        marketQuestion: t.market_question,
+        side: t.side,
+        amount: t.amount,
+        price: t.price,
+        estimatedProb: t.estimated_prob,
+        edge: t.edge,
+        sharesReceived,
+        maxPayout: sharesReceived ? sharesReceived / 1e6 : null,
+      };
+    });
 
     const liveTrades = formattedTrades.filter((t) => !t.dryRun);
+
+    const pnlTrend = resolvedTrades.map((t) => {
+      const cityMatch = t.market_question?.match(/temperature in (\w[\w\s]*?) (?:on|be)/i);
+      return {
+        timestamp: t.timestamp,
+        city: cityMatch?.[1]?.trim() ?? t.market_id?.split("-").slice(3, -4).join(" ") ?? "Unknown",
+        pnl: t.pnl ?? 0,
+        win: (t.pnl ?? 0) > 0,
+        edgeClaimed: t.edge ?? 0,
+      };
+    });
 
     return NextResponse.json({
       trades: formattedTrades,
       snapshots: formattedSnapshots,
+      positions: formattedPositions,
+      pnlTrend,
       portfolio: {
-        totalValue: portfolio.estimated_total_value,
-        cash: portfolio.cash_available,
-        invested: portfolio.total_invested,
-        realizedPnl: portfolio.realized_pnl,
-        positionCount: portfolio.position_count,
-        maxPositions: portfolio.max_positions,
-        todayPnl: portfolio.today_pnl,
-        dailyLossLimit: portfolio.daily_loss_limit,
-        maxPositionSize: portfolio.max_position_size,
-        startingCapital: portfolio.starting_capital,
+        totalValue: estimatedTotalValue,
+        cash: cashAvailable,
+        invested: totalInvested,
+        realizedPnl,
+        positionCount: openPositions.length,
+        todayPnl: 0,
+        dailyLossLimit: STARTING_CAPITAL * 0.1,
+        maxPositionSize: STARTING_CAPITAL * 0.15,
+        startingCapital: STARTING_CAPITAL,
       },
       summary: {
         totalTrades: liveTrades.length,
-        totalInvested: portfolio.total_invested,
-        startingCapital: portfolio.starting_capital,
+        totalInvested: totalInvested,
+        startingCapital: STARTING_CAPITAL,
       },
     });
   } catch (error) {
     console.error("Failed to read trading DB:", error);
     return NextResponse.json(
-      { error: "Failed to read trading database", trades: [], snapshots: [], summary: { totalTrades: 0, totalInvested: 0, startingCapital: 131.0 } },
+      { error: "Failed to read trading database", trades: [], snapshots: [], positions: [], summary: { totalTrades: 0, totalInvested: 0, startingCapital: STARTING_CAPITAL } },
       { status: 500 }
     );
   }

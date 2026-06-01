@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local Agent OS database (runtime artifact — do not commit)
+/data/*.db
+/data/*.db-shm
+/data/*.db-wal
