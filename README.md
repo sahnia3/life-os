@@ -10,6 +10,7 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com/)
 [![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000000?style=flat-square&logo=vercel)](https://vercel.com/)
+[![CI](https://github.com/sahnia3/life-os/actions/workflows/ci.yml/badge.svg)](https://github.com/sahnia3/life-os/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-A3A3A3?style=flat-square)](LICENSE)
 
 </div>
@@ -228,6 +229,14 @@ npm run dev
 ```
 
 The app will be running at `http://localhost:3000`.
+
+### Running Tests
+
+Tests are written with Vitest. Run the suite with:
+
+```bash
+npm test
+```
 
 ---
 
