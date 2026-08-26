@@ -50,8 +50,10 @@ export async function GET() {
       unread = Array.isArray(search) ? search.length : 0;
       const last = Array.isArray(search) ? search.slice(-5).reverse() : [];
       for (const seq of last) {
+        // fetchOne returns `false` (not just undefined) when the message is
+        // gone; narrow that out before touching envelope.
         const msg = await client.fetchOne(String(seq), { envelope: true });
-        if (msg?.envelope) {
+        if (msg && msg.envelope) {
           const from = msg.envelope.from?.[0]?.address ?? "";
           recent.push({
             from,

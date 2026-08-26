@@ -223,7 +223,7 @@ export default function ProjectsPage() {
                         <Calendar className="h-3 w-3" />
                       )}
                       {p.overdue
-                        ? `overdue ${-p.daysUntilTarget!} day${-p.daysUntilTarget === 1 ? "" : "s"}`
+                        ? `overdue ${-(p.daysUntilTarget ?? 0)} day${-(p.daysUntilTarget ?? 0) === 1 ? "" : "s"}`
                         : p.daysUntilTarget !== null && p.daysUntilTarget >= 0
                         ? `${p.daysUntilTarget} day${p.daysUntilTarget === 1 ? "" : "s"} to ${p.targetDate}`
                         : p.targetDate}

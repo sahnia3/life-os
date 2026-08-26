@@ -395,7 +395,7 @@ export default function TasksPage() {
                 <Label className="text-xs font-semibold">Course</Label>
                 <Select
                   value={form.course}
-                  onValueChange={(v) => setForm({ ...form, course: v })}
+                  onValueChange={(v) => setForm({ ...form, course: v ?? "" })}
                 >
                   <SelectTrigger className="h-9 text-sm">
                     <SelectValue placeholder="Select…" />
@@ -413,7 +413,7 @@ export default function TasksPage() {
                 <Label className="text-xs font-semibold">Priority</Label>
                 <Select
                   value={form.priority}
-                  onValueChange={(v) => setForm({ ...form, priority: v })}
+                  onValueChange={(v) => setForm({ ...form, priority: v ?? "2" })}
                 >
                   <SelectTrigger className="h-9 text-sm">
                     <SelectValue />

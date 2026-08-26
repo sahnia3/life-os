@@ -40,7 +40,7 @@ export function useAgentEvents() {
   const [isConnected, setIsConnected] = useState(false);
   const lastIdRef = useRef(0);
   const eventSourceRef = useRef<EventSource | null>(null);
-  const connectRef = useRef<() => void>();
+  const connectRef = useRef<(() => void) | undefined>(undefined);
 
   const connect = useCallback(() => {
     if (eventSourceRef.current) {

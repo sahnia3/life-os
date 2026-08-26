@@ -143,7 +143,7 @@ export async function GET() {
       if (!json) return null;
       try {
         const data = JSON.parse(json);
-        return Object.entries(data).map(([name, info]: [string, Record<string, unknown>]) => ({
+        return Object.entries(data as Record<string, unknown>).map(([name, info]) => ({
           name,
           mean: (info as { peak?: number }).peak ?? 0,
           members: (info as { members?: number }).members ?? 1,

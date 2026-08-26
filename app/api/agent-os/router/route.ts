@@ -48,8 +48,9 @@ function parseRoute(input: string, tmuxNames: string[], watcherProjects: Array<{
     };
   }
 
-  // Match a comma-separated list of @aliases at the start
-  const m = /^((?:@[A-Za-z0-9_\-]+(?:\s*,\s*@[A-Za-z0-9_\-]+)*)\s+)(.*)/s.exec(text);
+  // Match a comma-separated list of @aliases at the start. [\s\S] instead of
+  // the /s flag: dotAll needs ES2018 and tsconfig targets ES2017.
+  const m = /^((?:@[A-Za-z0-9_\-]+(?:\s*,\s*@[A-Za-z0-9_\-]+)*)\s+)([\s\S]*)/.exec(text);
   if (!m) {
     return {
       ok: false,
