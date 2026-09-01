@@ -17,6 +17,7 @@ import {
   Moon,
   Sun,
   Search,
+  Radar,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useSidebarStore } from "@/stores/sidebar-store";
@@ -33,6 +34,7 @@ const NAV_ITEMS = [
   { label: "Markets", href: "/markets", icon: TrendingUp },
   { label: "Calendar", href: "/calendar", icon: Calendar },
   { label: "Assistant", href: "/assistant", icon: Bot },
+  { label: "JARVIS", href: "/jarvis/command", icon: Radar },
 ];
 
 export function Sidebar() {
