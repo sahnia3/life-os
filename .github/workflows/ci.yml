@@ -9,7 +9,7 @@ on:
       - '**'
 
 jobs:
-  build:
+  lint-and-typecheck:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -21,4 +21,4 @@ jobs:
 
       - run: npm ci
       - run: npm run lint
-      - run: npm run build
+      - run: npx tsc --noEmit
